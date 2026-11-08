@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+TEXT_BOOK_DIR="$HOME/Programming/Learning/textbooks"
+CACHE_DIR="$HOME/.cache/text_book"
+VIEWER="${BROWSER:-librewolf}"
+
+
+
+mkdir -p "$CACHE_DIR"
+
+CHOICE="$(
+    find "$TEXT_BOOK_DIR" -type f -name '*.pdf' -printf "%P\n" |
+        fzf --style=full \
+            --expect=ctrl-z \
+            --footer "Press CTRL-Z to open in zathura" \
+            --preview="generate_cache \"${TEXT_BOOK_DIR}\" \"${CACHE_DIR}\" {}"
+)"
+
+[[ -z "$CHOICE" ]] && exit 0
+
+mapfile -t lines <<< "$CHOICE"
+key="${lines[0]}"
+file="${lines[1]}"
+
+if [[ -z "$file" ]]; then
+    file="$key"
+    key=""
+fi
+
+
+if [[ -n "$file" ]]; then
+    target_path="${TEXT_BOOK_DIR}/${file}"
+    if [[ "$key" == "ctrl-z" ]]; then
+        swaymsg exec "zathura \"${target_path}\" "
+    else
+        swaymsg exec "${VIEWER} \"${target_path}\" "
+    fi
+fi
