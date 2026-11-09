@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# # Open file descriptor 3 pointing to trace.log
+# exec 3> trace.log
+#
+# # Direct xtrace (set -x) output to file descriptor 3
+# BASH_XTRACEFD=3
+#
+# set -x
+
+generate_thumbnail() {
+    TEXT_BOOK_DIR="$1"
+    shift
+    CACHE_DIR="$1"
+    shift
+    local pdf_rel="$1"
+    local full_pdf="${TEXT_BOOK_DIR}/${pdf_rel}"
+    local name="${pdf_rel%.pdf}"
+    local thumb_path="${CACHE_DIR}/${name}.png"
+    local thumb_dir
+
+    thumb_dir="$(dirname "$thumb_path")"
+    mkdir -p "$thumb_dir"
+
+    if [[ ! -f "$thumb_path" ]]; then
+	mutool draw -F png "$full_pdf" 1 1>"${CACHE_DIR}/${name}.png" 2>/dev/null
+    fi
+
+    chafa  -w 9 -s "${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES}"  "$thumb_path"
+}
+
+generate_thumbnail "$@"
